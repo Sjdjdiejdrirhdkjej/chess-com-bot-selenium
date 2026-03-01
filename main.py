@@ -342,7 +342,7 @@ async def handle_promotion_window(driver_):
             C.wait_50ms,
             EC.visibility_of_element_located((By.CLASS_NAME, C.promotion_window))
         )
-        sleep(0.2)
+        await asyncio.sleep(0.2)
         item = promotion.find_elements(By.CLASS_NAME, C.black_queen)
         item = item[0] if len(item) > 0 else None
         if item is None:
