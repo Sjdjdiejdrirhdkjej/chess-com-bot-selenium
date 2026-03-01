@@ -13,7 +13,6 @@ from time import time, sleep
 
 import logging
 import selenium.common.exceptions
-import selenium.webdriver.common.devtools.v119 as devtools
 import typer
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
