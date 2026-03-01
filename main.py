@@ -153,7 +153,7 @@ if not os.path.exists(stockfish_path):
     try:
         os.mkdir(stockfish_dir)
     except FileExistsError:
-        pass
+        Log.debug("FileExistsError in os.mkdir(stockfish_dir)")
     Log.error(traceback.format_exception(FileNotFoundError(stockfish_path)))
     input()
     exit(1)
@@ -342,7 +342,7 @@ async def handle_promotion_window(driver_):
             C.wait_50ms,
             EC.visibility_of_element_located((By.CLASS_NAME, C.promotion_window))
         )
-        sleep(0.2)
+        await asyncio.sleep(0.2)
         item = promotion.find_elements(By.CLASS_NAME, C.black_queen)
         item = item[0] if len(item) > 0 else None
         if item is None:
@@ -352,7 +352,7 @@ async def handle_promotion_window(driver_):
             raise RuntimeError
         item.click()
     except selenium.common.exceptions.TimeoutException:
-        pass
+        Log.debug("TimeoutException in handle_promotion_window")
     except selenium.common.exceptions.ElementNotInteractableException:
         await handle_promotion_window(driver_)
 
@@ -427,12 +427,10 @@ async def actions(engine: stockfish.Stockfish, driver_: webdriver.Chrome):
         engine.set_elo_rating(elo_rating_)
 
     try:
-        # Log.info("Waiting for a \"board\" element")
         await wait_until(driver_, C.wait_50ms, min_n_elements_exist(
             by=By.CLASS_NAME,
             selector=C.board
         ))
-        # Log.info("Waiting for the game to start")
         await wait_until(driver_, C.wait_50ms, min_n_elements_exist(
             by=By.XPATH,
             selector=C.controls_xpath,
@@ -466,9 +464,9 @@ async def actions(engine: stockfish.Stockfish, driver_: webdriver.Chrome):
             if el.is_displayed():
                 raise RuntimeError("Game over")
         except selenium.common.exceptions.NoSuchElementException:
-            pass
+            Log.debug("NoSuchElementException in op_move")
         except selenium.common.exceptions.StaleElementReferenceException:
-            pass
+            Log.debug("StaleElementReferenceException in op_move")
         return not all(has_subclass(cls_lst, x) for x in last_tiles)
 
 
@@ -539,13 +537,13 @@ async def actions(engine: stockfish.Stockfish, driver_: webdriver.Chrome):
             wt = get_move_delay(t_)
             wt = wt if loop_id > 4 else max(wt, abs(random.random() / 3) + 0.1)
             Log.debug("wt=%.3f last_wt=%.3f", wt, last_wt)
-            sleep(wt)
+            await asyncio.sleep(wt)
         timer = max(0.0, timer - (wt + t_) * 1000)
         Log.debug("timer = " + str(timer))
         try:
             await play(driver_, engine, move)
         except selenium.common.exceptions.ElementClickInterceptedException:
-            pass
+            Log.debug("ElementClickInterceptedException in actions")
         cls1 = C.square + str(C.let_to_num[move[0]]) + move[1]
         cls2 = C.square + str(C.let_to_num[move[2]]) + move[3]
         Log.info("Waiting for opponent's move")
@@ -572,7 +570,7 @@ async def main_():
             wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@id="guest-button"]'))).click()
             await asyncio.sleep(0.5)
         except selenium.common.exceptions.TimeoutException:
-            pass
+            Log.debug("TimeoutException in handle_menu_buttons")
         try:
             new_game_buttons = wait.until(EC.visibility_of_element_located((By.XPATH, C.new_game_buttons_xpath)))
             await asyncio.sleep(0.5)
@@ -583,13 +581,13 @@ async def main_():
             await asyncio.sleep(0.5)
             _.click()
         except selenium.common.exceptions.WebDriverException:
-            pass
+            Log.debug("WebDriverException in handle_menu_buttons (Decline)")
         try:
             _ = new_game_buttons.find_element(By.XPATH, C.new_game_button_sub_xpath % "New")
             await asyncio.sleep(0.5)
             _.click()
         except selenium.common.exceptions.WebDriverException:
-            pass
+            Log.debug("WebDriverException in handle_menu_buttons (New)")
 
     async def handle_driver_exc(e):
         try:
@@ -622,7 +620,7 @@ async def main_():
         await asyncio.sleep(0.1)
 
     Log.info("Closing Selenium WebDriver in %s seconds" % C.exit_delay)
-    sleep(C.exit_delay)
+    await asyncio.sleep(C.exit_delay)
     driver.quit()
 
 
