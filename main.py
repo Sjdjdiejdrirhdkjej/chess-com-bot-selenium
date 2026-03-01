@@ -622,7 +622,7 @@ async def main_():
         await asyncio.sleep(0.1)
 
     Log.info("Closing Selenium WebDriver in %s seconds" % C.exit_delay)
-    sleep(C.exit_delay)
+    await asyncio.sleep(C.exit_delay)
     driver.quit()
 
 
